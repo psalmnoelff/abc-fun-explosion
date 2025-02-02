@@ -20,14 +20,21 @@ const wrongSound = new Howl({
 });
 
 const words = [
-  { word: 'Apple', image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9' },
-  { word: 'Ball', image: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1' },
-  { word: 'Cat', image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901' },
-  { word: 'Dog', image: 'https://images.unsplash.com/photo-1472396961693-142e6e269027' },
+  'Apple', 'Ball', 'Cat', 'Dog', 'Elephant', 'Frog', 'Goat', 'Hat', 'Igloo', 'Jug',
+  'Kite', 'Lion', 'Monkey', 'Nest', 'Orange', 'Pig', 'Queen', 'Rabbit', 'Sun', 'Tree',
+  'Umbrella', 'Van', 'Whale', 'Xylophone', 'Yak', 'Zebra', 'Airplane', 'Banana', 'Car',
+  'Dinosaur', 'Flower', 'Giraffe', 'House', 'Ice cream', 'Jellyfish', 'Kangaroo', 'Ladybug',
+  'Mushroom', 'Octopus', 'Penguin', 'Rocket', 'Star', 'Tiger', 'Unicorn', 'Violin',
+  'Watermelon', 'Yo-yo', 'Zipper', 'Ant', 'Bear', 'Clock', 'Dragon', 'Fish', 'Glasses',
+  'Helicopter', 'Insect', 'Jacket', 'Key', 'Lamp', 'Magnet', 'Needle', 'Owl', 'Parrot',
+  'Quilt', 'Rainbow', 'Snail', 'Train', 'Umbrella', 'Volcano', 'Watch', 'X-ray', 'Yarn',
+  'Book', 'Cake', 'Doll', 'Egg', 'Fan', 'Glove', 'Hammer', 'Island', 'Jar', 'Leaf',
+  'Map', 'Nut', 'Paint', 'Ring', 'Sock', 'Table', 'Vase', 'Wagon', 'Acorn', 'Box',
+  'Cup', 'Dice', 'Door', 'Eye', 'Flag', 'Gate', 'Hand', 'Ice', 'Jump', 'King'
 ];
 
 const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
-  const [currentWord, setCurrentWord] = useState(words[0]);
+  const [currentWord, setCurrentWord] = useState('');
   const [letters, setLetters] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -46,7 +53,7 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
   const selectNewWord = () => {
     const newWord = words[Math.floor(Math.random() * words.length)];
     setCurrentWord(newWord);
-    setLetters(generateLetters(newWord.word[0].toUpperCase()));
+    setLetters(generateLetters(newWord[0].toUpperCase()));
   };
 
   useEffect(() => {
@@ -54,7 +61,7 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
   }, []);
 
   const handleLetterClick = (letter: string) => {
-    const isCorrect = letter === currentWord.word[0].toUpperCase();
+    const isCorrect = letter === currentWord[0].toUpperCase();
     
     if (isCorrect) {
       correctSound.play();
@@ -133,22 +140,14 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
       </div>
 
       <div className="text-center">
-        <motion.img
-          key={currentWord.image}
-          src={currentWord.image}
-          alt={currentWord.word}
-          className="w-48 h-48 object-cover rounded-lg mx-auto mb-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        />
         <motion.p
-          key={currentWord.word}
+          key={currentWord}
           className="text-4xl font-bold"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <span className="border-b-4 border-primary">{currentWord.word[0]}</span>
-          {currentWord.word.slice(1)}
+          <span className="border-b-4 border-primary">{currentWord[0]}</span>
+          {currentWord.slice(1)}
         </motion.p>
       </div>
     </motion.div>
