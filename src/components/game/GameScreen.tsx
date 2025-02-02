@@ -107,6 +107,12 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
         </p>
       </div>
 
+      <div className="text-center mb-8">
+        <p className="text-lg text-muted-foreground mb-6">
+          Select the first letter of the word shown below
+        </p>
+      </div>
+
       <div className="flex gap-4 my-8">
         {letters.map((letter, index) => (
           <motion.div
@@ -137,11 +143,12 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
         />
         <motion.p
           key={currentWord.word}
-          className="text-2xl font-bold"
+          className="text-4xl font-bold"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {currentWord.word}
+          <span className="border-b-4 border-primary">{currentWord.word[0]}</span>
+          {currentWord.word.slice(1)}
         </motion.p>
       </div>
     </motion.div>
