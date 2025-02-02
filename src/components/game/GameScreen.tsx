@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
+import { ArrowLeft } from "lucide-react";
+import type { LetterPosition } from "./Settings";
 
 interface GameScreenProps {
   maxLetters: number;
   onGameEnd: () => void;
+  letterPosition: LetterPosition;
 }
 
 const correctSound = new Howl({
@@ -33,13 +36,36 @@ const words = [
   'Cup', 'Dice', 'Door', 'Eye', 'Flag', 'Gate', 'Hand', 'Ice', 'Jump', 'King'
 ];
 
-const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
+const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) => {
   const [currentWord, setCurrentWord] = useState('');
+  const [targetLetter, setTargetLetter] = useState('');
+  const [targetLetterIndex, setTargetLetterIndex] = useState(0);
   const [letters, setLetters] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isShaking, setIsShaking] = useState(false);
   const { toast } = useToast();
+
+  const getTargetLetterInfo = (word: string) => {
+    let index = 0;
+    switch (letterPosition) {
+      case 'end':
+        index = word.length - 1;
+        break;
+      case 'random':
+        // Ensure we don't pick first or last letter for random
+        if (word.length > 2) {
+          index = Math.floor(Math.random() * (word.length - 2)) + 1;
+        }
+        break;
+      default: // 'start'
+        index = 0;
+    }
+    return {
+      letter: word[index].toUpperCase(),
+      index
+    };
+  };
 
   const generateLetters = (correctLetter: string) => {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -52,8 +78,11 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
 
   const selectNewWord = () => {
     const newWord = words[Math.floor(Math.random() * words.length)];
+    const { letter, index } = getTargetLetterInfo(newWord);
     setCurrentWord(newWord);
-    setLetters(generateLetters(newWord[0].toUpperCase()));
+    setTargetLetter(letter);
+    setTargetLetterIndex(index);
+    setLetters(generateLetters(letter));
   };
 
   useEffect(() => {
@@ -61,7 +90,7 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
   }, []);
 
   const handleLetterClick = (letter: string) => {
-    const isCorrect = letter === currentWord[0].toUpperCase();
+    const isCorrect = letter === targetLetter;
     
     if (isCorrect) {
       correctSound.play();
@@ -107,6 +136,17 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
       animate={{ opacity: 1 }}
       initial={{ opacity: 0 }}
     >
+      <div className="absolute top-4 left-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onGameEnd}
+          className="hover:bg-slate-100"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+      </div>
+
       <div className="w-full max-w-md">
         <Progress value={progress} className="h-3" />
         <p className="text-right mt-2 text-muted-foreground">
@@ -116,7 +156,7 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
 
       <div className="text-center mb-8">
         <p className="text-lg text-muted-foreground mb-6">
-          Select the first letter of the word shown below
+          Select the {letterPosition === 'start' ? 'first' : letterPosition === 'end' ? 'last' : 'highlighted'} letter of the word shown below
         </p>
       </div>
 
@@ -146,8 +186,14 @@ const GameScreen = ({ maxLetters, onGameEnd }: GameScreenProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <span className="border-b-4 border-primary">{currentWord[0]}</span>
-          {currentWord.slice(1)}
+          {currentWord.split('').map((letter, index) => (
+            <span
+              key={index}
+              className={index === targetLetterIndex ? "border-b-4 border-primary" : ""}
+            >
+              {letter}
+            </span>
+          ))}
         </motion.p>
       </div>
     </motion.div>
