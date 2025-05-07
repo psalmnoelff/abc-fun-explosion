@@ -1,14 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Grid3X3, CaseLower, CaseUpper } from "lucide-react";
+import { Grid3X3, CaseLower, CaseUpper, Calculator } from "lucide-react";
 
 interface StartScreenProps {
   onStart: (gameType: string) => void;
-  maxLetters?: number;
 }
 
-const StartScreen = ({ onStart, maxLetters = 10 }: StartScreenProps) => {
+const StartScreen = ({ onStart }: StartScreenProps) => {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -16,9 +15,9 @@ const StartScreen = ({ onStart, maxLetters = 10 }: StartScreenProps) => {
       className="flex flex-col items-center justify-center min-h-screen gap-8 p-4"
     >
       <h1 className="text-4xl md:text-6xl font-bold text-primary">ABC Learning Game</h1>
-      <p className="text-xl text-muted-foreground">Learn letters with fun!</p>
+      <p className="text-xl text-muted-foreground">Learn letters and numbers with fun!</p>
       
-      <div className="flex flex-col md:flex-row gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <motion.div 
           whileHover={{ scale: 1.05 }}
           className="bg-white p-6 rounded-lg shadow-lg max-w-xs"
@@ -56,11 +55,26 @@ const StartScreen = ({ onStart, maxLetters = 10 }: StartScreenProps) => {
             Play Now
           </Button>
         </motion.div>
+        
+        <motion.div 
+          whileHover={{ scale: 1.05 }}
+          className="bg-white p-6 rounded-lg shadow-lg max-w-xs"
+        >
+          <div className="flex justify-center mb-4">
+            <Calculator className="h-16 w-16 text-purple-500" />
+          </div>
+          <h2 className="text-xl font-bold text-center mb-2">Missing Number Puzzle</h2>
+          <p className="text-muted-foreground text-center mb-4">
+            Fill in the missing numbers in the sequence!
+          </p>
+          <Button 
+            onClick={() => onStart('missingNumber')}
+            className="w-full bg-purple-500 hover:bg-purple-600"
+          >
+            Play Now
+          </Button>
+        </motion.div>
       </div>
-      
-      <p className="text-sm text-muted-foreground mt-4">
-        {maxLetters} letters per session
-      </p>
     </motion.div>
   );
 };

@@ -4,6 +4,7 @@ import StartScreen from "@/components/game/StartScreen";
 import GameScreen from "@/components/game/GameScreen";
 import Settings from "@/components/game/Settings";
 import MissingLetterPuzzle from "@/components/game/MissingLetterPuzzle";
+import MissingNumberPuzzle from "@/components/game/MissingNumberPuzzle";
 import type { GameSettings, GameType } from "@/components/game/Settings";
 
 const Index = () => {
@@ -13,7 +14,10 @@ const Index = () => {
   const [settings, setSettings] = useState<GameSettings>({
     sessionLength: 10,
     letterPosition: 'start',
-    letterCase: 'upper'
+    letterCase: 'upper',
+    startNumber: 1,
+    endNumber: 20,
+    missingCount: 3
   });
 
   const handleGameEnd = () => {
@@ -32,13 +36,17 @@ const Index = () => {
     setShowSettings(false);
     setGameStarted(true);
   };
+  
+  const handleBackToMenu = () => {
+    setShowSettings(false);
+  };
 
   if (showSettings) {
-    return <Settings onStart={handleSettingsSubmit} gameType={gameType} />;
+    return <Settings onStart={handleSettingsSubmit} onBack={handleBackToMenu} gameType={gameType} />;
   }
 
   if (!gameStarted) {
-    return <StartScreen onStart={handleStartClick} maxLetters={settings.sessionLength} />;
+    return <StartScreen onStart={handleStartClick} />;
   }
 
   if (gameType === 'missingLetter') {
@@ -46,6 +54,17 @@ const Index = () => {
       <MissingLetterPuzzle 
         onGameEnd={handleGameEnd}
         letterCase={settings.letterCase}
+      />
+    );
+  }
+  
+  if (gameType === 'missingNumber') {
+    return (
+      <MissingNumberPuzzle 
+        onGameEnd={handleGameEnd}
+        startNumber={settings.startNumber}
+        endNumber={settings.endNumber}
+        missingCount={settings.missingCount}
       />
     );
   }

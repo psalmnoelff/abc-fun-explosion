@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import confetti from 'canvas-confetti';
@@ -25,9 +24,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { LetterCase } from "./Settings";
 
-interface MissingLetterPuzzleProps {
+interface MissingNumberPuzzleProps {
   onGameEnd: () => void;
-  letterCase: LetterCase;
+  startNumber: number;
+  endNumber: number;
+  missingCount: number;
 }
 
 const correctSound = new Howl({
@@ -38,36 +39,38 @@ const wrongSound = new Howl({
   src: ['/sounds/wrong.mp3']
 });
 
-// Create an alphabet based on the letter case
-const getAlphabet = (letterCase: LetterCase) => {
-  return letterCase === 'upper' 
-    ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-    : 'abcdefghijklmnopqrstuvwxyz'.split('');
+// Create number array from start to end
+const getNumberArray = (start: number, end: number) => {
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 };
 
 type GridItem = {
-  letter: string;
+  number: number;
   isMissing: boolean;
-  userAnswer: string | null;
+  userAnswer: number | null;
   isCorrect: boolean | null;
 };
 
-const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps) => {
+const MissingNumberPuzzle = ({ 
+  onGameEnd, 
+  startNumber, 
+  endNumber, 
+  missingCount 
+}: MissingNumberPuzzleProps) => {
   const [grid, setGrid] = useState<GridItem[]>([]);
   const [currentMissingIndex, setCurrentMissingIndex] = useState<number | null>(null);
-  const [showLetterDialog, setShowLetterDialog] = useState(false);
+  const [showNumberDialog, setShowNumberDialog] = useState(false);
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [showTryAgain, setShowTryAgain] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const { toast } = useToast();
   
   const generateGame = () => {
-    const alphabet = getAlphabet(letterCase);
-    const numMissingLetters = Math.floor(Math.random() * 3) + 3; // 3 to 5 missing letters
+    const numberArray = getNumberArray(startNumber, endNumber);
     
-    // Create array with all letters
-    const gridItems: GridItem[] = alphabet.map(letter => ({
-      letter,
+    // Create array with all numbers
+    const gridItems: GridItem[] = numberArray.map(number => ({
+      number,
       isMissing: false,
       userAnswer: null,
       isCorrect: null
@@ -75,8 +78,12 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
     
     // Randomly select indices to be missing, making sure they're not adjacent
     const missingIndices: number[] = [];
-    while (missingIndices.length < numMissingLetters) {
-      const randomIndex = Math.floor(Math.random() * alphabet.length);
+    const maxAttempts = 100; // Prevent infinite loops
+    let attempts = 0;
+    
+    while (missingIndices.length < missingCount && attempts < maxAttempts) {
+      attempts++;
+      const randomIndex = Math.floor(Math.random() * numberArray.length);
       // Check if this index or adjacent indices are already selected
       if (
         !missingIndices.includes(randomIndex) && 
@@ -97,24 +104,24 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
   
   useEffect(() => {
     generateGame();
-  }, [letterCase]);
+  }, [startNumber, endNumber, missingCount]);
   
-  const handleLetterClick = (index: number) => {
+  const handleNumberClick = (index: number) => {
     // Allow clicking if the item was originally missing (even if it has an answer now)
     if (grid[index].isMissing) {
       setCurrentMissingIndex(index);
-      setShowLetterDialog(true);
+      setShowNumberDialog(true);
     }
   };
   
-  const handleLetterSelection = (letter: string) => {
+  const handleNumberSelection = (number: number) => {
     if (currentMissingIndex === null) return;
     
-    const isCorrect = letter === grid[currentMissingIndex].letter;
-    setShowLetterDialog(false);
+    const isCorrect = number === grid[currentMissingIndex].number;
+    setShowNumberDialog(false);
     
     const updatedGrid = [...grid];
-    updatedGrid[currentMissingIndex].userAnswer = letter;
+    updatedGrid[currentMissingIndex].userAnswer = number;
     updatedGrid[currentMissingIndex].isCorrect = isCorrect;
     
     if (isCorrect) {
@@ -132,7 +139,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
     
     setGrid(updatedGrid);
     
-    // Check if all missing letters have been answered
+    // Check if all missing numbers have been answered
     const allAnswered = updatedGrid
       .filter(item => item.isMissing)
       .every(item => item.userAnswer !== null);
@@ -168,7 +175,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
     if (!allAnswered) {
       toast({
         title: "Not Finished Yet",
-        description: "Please fill in all missing letters first.",
+        description: "Please fill in all missing numbers first.",
         variant: "destructive",
       });
       return;
@@ -190,6 +197,9 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
     }
   };
   
+  // Calculate grid columns based on number of items
+  const gridColumns = Math.min(5, Math.ceil(Math.sqrt(grid.length)));
+  
   return (
     <motion.div 
       className={`flex flex-col items-center justify-center min-h-screen gap-8 p-4 ${
@@ -209,35 +219,38 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
         </Button>
       </div>
 
-      <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">Missing Letter Puzzle</h1>
-      <p className="text-lg text-muted-foreground">Fill in the missing letters in the alphabet.</p>
+      <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">Missing Number Puzzle</h1>
+      <p className="text-lg text-muted-foreground">
+        Fill in the missing numbers in the sequence from {startNumber} to {endNumber}.
+      </p>
       
-      <div className="grid grid-cols-5 gap-3 md:gap-4 max-w-md mx-auto">
+      <div className={`grid grid-cols-${gridColumns} gap-3 md:gap-4 max-w-md mx-auto`} 
+        style={{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }}>
         {grid.map((item, index) => (
           <motion.div
             key={index}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: index * 0.01 }}
-            onClick={() => handleLetterClick(index)}
+            onClick={() => handleNumberClick(index)}
             className={`
               w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-md border-2 
               ${item.isMissing && !item.userAnswer 
                 ? 'border-dashed border-gray-400 bg-gray-100 cursor-pointer' 
                 : 'border-gray-300'
               }
-              ${item.userAnswer && item.isCorrect ? 'bg-green-100 border-green-500' : ''}
-              ${item.userAnswer && !item.isCorrect ? 'bg-red-100 border-red-500' : ''}
+              ${item.userAnswer !== null && item.isCorrect ? 'bg-green-100 border-green-500' : ''}
+              ${item.userAnswer !== null && !item.isCorrect ? 'bg-red-100 border-red-500' : ''}
               ${item.isMissing ? 'cursor-pointer' : ''}
             `}
           >
             {item.isMissing 
-              ? (item.userAnswer 
+              ? (item.userAnswer !== null
                 ? <span className={`text-2xl font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                     {item.userAnswer}
                   </span>
                 : <span className="text-gray-400">?</span>)
-              : <span className="text-2xl font-bold">{item.letter}</span>
+              : <span className="text-2xl font-bold">{item.number}</span>
             }
           </motion.div>
         ))}
@@ -260,24 +273,24 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
         </Button>
       </div>
       
-      {/* Letter Selection Dialog */}
-      <Dialog open={showLetterDialog} onOpenChange={setShowLetterDialog}>
+      {/* Number Selection Dialog */}
+      <Dialog open={showNumberDialog} onOpenChange={setShowNumberDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Choose the Missing Letter</DialogTitle>
+            <DialogTitle>Choose the Missing Number</DialogTitle>
             <DialogDescription>
-              Select the correct letter for this position in the alphabet.
+              Select the correct number for this position in the sequence.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-7 gap-2">
-            {getAlphabet(letterCase).map((letter) => (
+          <div className="grid grid-cols-5 gap-2 max-h-80 overflow-y-auto">
+            {getNumberArray(startNumber, endNumber).map((number) => (
               <Button
-                key={letter}
+                key={number}
                 variant="outline"
                 className="h-12 text-lg font-medium"
-                onClick={() => handleLetterSelection(letter)}
+                onClick={() => handleNumberSelection(number)}
               >
-                {letter}
+                {number}
               </Button>
             ))}
           </div>
@@ -290,7 +303,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl text-center">🎉 Congratulations! 🎉</AlertDialogTitle>
             <AlertDialogDescription className="text-center text-lg">
-              You've successfully completed the Missing Letter Puzzle!
+              You've successfully completed the Missing Number Puzzle!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -305,7 +318,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
           <AlertDialogHeader>
             <AlertDialogTitle>Keep Trying!</AlertDialogTitle>
             <AlertDialogDescription>
-              Some of the letters are incorrect. Try again!
+              Some of the numbers are incorrect. Try again!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -317,4 +330,4 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
   );
 };
 
-export default MissingLetterPuzzle;
+export default MissingNumberPuzzle;
