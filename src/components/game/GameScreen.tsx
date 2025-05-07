@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +7,7 @@ import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
 import { ArrowLeft } from "lucide-react";
 import type { LetterPosition, LetterCase } from "./Settings";
+import SkyBackground from "./SkyBackground";
 
 interface GameScreenProps {
   maxLetters: number;
@@ -147,81 +147,83 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition, letterCase }: GameS
   };
 
   return (
-    <motion.div 
-      className={`flex flex-col items-center justify-center min-h-screen gap-8 p-4 ${
-        isShaking ? 'animate-shake bg-red-50' : ''
-      }`}
-      animate={{ opacity: 1 }}
-      initial={{ opacity: 0 }}
-    >
-      <div className="absolute top-4 left-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onGameEnd}
-          className="hover:bg-slate-100"
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-      </div>
-
-      <div className="w-full max-w-md">
-        <Progress value={progress} className="h-3" />
-        <p className="text-right mt-2 text-muted-foreground">
-          Score: {score}/{maxLetters}
-        </p>
-      </div>
-
-      <div className="text-center mb-8">
-        <p className="text-lg text-muted-foreground mb-6">
-          Select the {getPositionDescription()} letter of the word shown below
-        </p>
-      </div>
-
-      <div className="flex gap-4 my-8">
-        {letters.map((letter, index) => (
-          <motion.div
-            key={index}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
+    <>
+      <SkyBackground />
+      <motion.div 
+        className={`relative flex flex-col items-center justify-center min-h-screen gap-8 p-4 ${
+          isShaking ? 'animate-shake bg-red-50/80' : ''
+        }`}
+        animate={{ opacity: 1 }}
+        initial={{ opacity: 0 }}
+      >
+        <div className="absolute top-4 left-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onGameEnd}
+            className="hover:bg-slate-100/70 backdrop-blur-sm"
           >
-            <Button
-              size="lg"
-              onClick={() => handleLetterClick(letter)}
-              className="w-20 h-20 text-4xl font-bold"
-            >
-              {letter}
-            </Button>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="text-center">
-        <div className="flex justify-center gap-2 my-4">
-          {currentWord.split('').map((letter, index) => {
-            // Format letter according to settings
-            const displayLetter = letterCase === 'upper' ? letter.toUpperCase() : letter.toLowerCase();
-            const isTarget = index === targetLetterIndex;
-            
-            return (
-              <motion.div
-                key={index}
-                className={`flex items-center justify-center w-12 h-12 border-2 rounded-md text-2xl font-bold
-                  ${isTarget ? 'bg-primary text-primary-foreground' : 'border-gray-300'}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                {displayLetter}
-              </motion.div>
-            );
-          })}
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
         </div>
-      </div>
-    </motion.div>
+
+        <div className="w-full max-w-md backdrop-blur-sm bg-white/40 p-4 rounded-lg">
+          <Progress value={progress} className="h-3" />
+          <p className="text-right mt-2 text-muted-foreground">
+            Score: {score}/{maxLetters}
+          </p>
+        </div>
+
+        <div className="text-center mb-8 backdrop-blur-sm bg-white/40 p-4 rounded-lg">
+          <p className="text-lg text-muted-foreground mb-6">
+            Select the {getPositionDescription()} letter of the word shown below
+          </p>
+        </div>
+
+        <div className="flex gap-4 my-8">
+          {letters.map((letter, index) => (
+            <motion.div
+              key={index}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Button
+                size="lg"
+                onClick={() => handleLetterClick(letter)}
+                className="w-20 h-20 text-4xl font-bold shadow-lg"
+              >
+                {letter}
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="text-center backdrop-blur-sm bg-white/40 p-4 rounded-lg">
+          <div className="flex justify-center gap-2 my-4">
+            {currentWord.split('').map((letter, index) => {
+              // Format letter according to settings
+              const displayLetter = letterCase === 'upper' ? letter.toUpperCase() : letter.toLowerCase();
+              const isTarget = index === targetLetterIndex;
+              
+              return (
+                <motion.div
+                  key={index}
+                  className={`flex items-center justify-center w-12 h-12 border-2 rounded-md text-2xl font-bold
+                    ${isTarget ? 'bg-primary text-primary-foreground' : 'border-gray-300 bg-white/70'}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  {displayLetter}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </motion.div>
+    </>
   );
 };
 
 export default GameScreen;
-
