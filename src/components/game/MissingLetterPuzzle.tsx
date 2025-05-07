@@ -45,6 +45,16 @@ const getAlphabet = (letterCase: LetterCase) => {
     : 'abcdefghijklmnopqrstuvwxyz'.split('');
 };
 
+// Shuffle array using Fisher-Yates algorithm
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 type GridItem = {
   letter: string;
   isMissing: boolean;
@@ -59,6 +69,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [showTryAgain, setShowTryAgain] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [randomizedLetters, setRandomizedLetters] = useState<string[]>([]);
   const { toast } = useToast();
   
   const generateGame = () => {
@@ -103,6 +114,9 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
     // Allow clicking if the item was originally missing (even if it has an answer now)
     if (grid[index].isMissing) {
       setCurrentMissingIndex(index);
+      // Create a randomized version of the alphabet for the dialog
+      const randomized = shuffleArray(getAlphabet(letterCase));
+      setRandomizedLetters(randomized);
       setShowLetterDialog(true);
     }
   };
@@ -270,7 +284,7 @@ const MissingLetterPuzzle = ({ onGameEnd, letterCase }: MissingLetterPuzzleProps
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-7 gap-2">
-            {getAlphabet(letterCase).map((letter) => (
+            {randomizedLetters.map((letter) => (
               <Button
                 key={letter}
                 variant="outline"

@@ -44,6 +44,16 @@ const getNumberArray = (start: number, end: number) => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 };
 
+// Shuffle array using Fisher-Yates algorithm
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 type GridItem = {
   number: number;
   isMissing: boolean;
@@ -63,6 +73,7 @@ const MissingNumberPuzzle = ({
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [showTryAgain, setShowTryAgain] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [randomizedNumbers, setRandomizedNumbers] = useState<number[]>([]);
   const { toast } = useToast();
   
   const generateGame = () => {
@@ -110,6 +121,9 @@ const MissingNumberPuzzle = ({
     // Allow clicking if the item was originally missing (even if it has an answer now)
     if (grid[index].isMissing) {
       setCurrentMissingIndex(index);
+      // Create a randomized version of the number array for the dialog
+      const randomized = shuffleArray(getNumberArray(startNumber, endNumber));
+      setRandomizedNumbers(randomized);
       setShowNumberDialog(true);
     }
   };
@@ -283,7 +297,7 @@ const MissingNumberPuzzle = ({
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-5 gap-2 max-h-80 overflow-y-auto">
-            {getNumberArray(startNumber, endNumber).map((number) => (
+            {randomizedNumbers.map((number) => (
               <Button
                 key={number}
                 variant="outline"
