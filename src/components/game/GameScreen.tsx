@@ -198,28 +198,30 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition, letterCase }: GameS
       </div>
 
       <div className="text-center">
-        <motion.p
-          key={currentWord}
-          className="text-6xl font-bold"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
+        <div className="flex justify-center gap-2 my-4">
           {currentWord.split('').map((letter, index) => {
             // Format letter according to settings
             const displayLetter = letterCase === 'upper' ? letter.toUpperCase() : letter.toLowerCase();
+            const isTarget = index === targetLetterIndex;
+            
             return (
-              <span
+              <motion.div
                 key={index}
-                className={index === targetLetterIndex ? "border-b-4 border-primary" : ""}
+                className={`flex items-center justify-center w-12 h-12 border-2 rounded-md text-2xl font-bold
+                  ${isTarget ? 'bg-primary text-primary-foreground' : 'border-gray-300'}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
                 {displayLetter}
-              </span>
+              </motion.div>
             );
           })}
-        </motion.p>
+        </div>
       </div>
     </motion.div>
   );
 };
 
 export default GameScreen;
+
