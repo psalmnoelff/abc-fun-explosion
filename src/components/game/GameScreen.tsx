@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -6,12 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import confetti from 'canvas-confetti';
 import { Howl } from 'howler';
 import { ArrowLeft } from "lucide-react";
-import type { LetterPosition } from "./Settings";
+import type { LetterPosition, LetterCase } from "./Settings";
 
 interface GameScreenProps {
   maxLetters: number;
   onGameEnd: () => void;
   letterPosition: LetterPosition;
+  letterCase: LetterCase;
 }
 
 const correctSound = new Howl({
@@ -36,7 +38,7 @@ const words = [
   'Cup', 'Dice', 'Door', 'Eye', 'Flag', 'Gate', 'Hand', 'Ice', 'Jump', 'King'
 ];
 
-const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) => {
+const GameScreen = ({ maxLetters, onGameEnd, letterPosition, letterCase }: GameScreenProps) => {
   const [currentWord, setCurrentWord] = useState('');
   const [targetLetter, setTargetLetter] = useState('');
   const [targetLetterIndex, setTargetLetterIndex] = useState(0);
@@ -61,14 +63,20 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) 
       default: // 'start'
         index = 0;
     }
+    let letter = word[index];
+    letter = letterCase === 'upper' ? letter.toUpperCase() : letter.toLowerCase();
+    
     return {
-      letter: word[index].toUpperCase(),
+      letter,
       index
     };
   };
 
   const generateLetters = (correctLetter: string) => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const alphabet = letterCase === 'upper' 
+      ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+      : 'abcdefghijklmnopqrstuvwxyz'.split('');
+    
     const otherLetters = alphabet
       .filter(l => l !== correctLetter)
       .sort(() => Math.random() - 0.5)
@@ -128,6 +136,16 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) 
     selectNewWord();
   };
 
+  // Get position description based on letterPosition
+  const getPositionDescription = () => {
+    switch (letterPosition) {
+      case 'start': return 'first';
+      case 'end': return 'last';
+      case 'random': return 'highlighted';
+      default: return 'highlighted';
+    }
+  };
+
   return (
     <motion.div 
       className={`flex flex-col items-center justify-center min-h-screen gap-8 p-4 ${
@@ -156,7 +174,7 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) 
 
       <div className="text-center mb-8">
         <p className="text-lg text-muted-foreground mb-6">
-          Select the {letterPosition === 'start' ? 'first' : letterPosition === 'end' ? 'last' : 'highlighted'} letter of the word shown below
+          Select the {getPositionDescription()} letter of the word shown below
         </p>
       </div>
 
@@ -182,18 +200,22 @@ const GameScreen = ({ maxLetters, onGameEnd, letterPosition }: GameScreenProps) 
       <div className="text-center">
         <motion.p
           key={currentWord}
-          className="text-4xl font-bold"
+          className="text-6xl font-bold"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {currentWord.split('').map((letter, index) => (
-            <span
-              key={index}
-              className={index === targetLetterIndex ? "border-b-4 border-primary" : ""}
-            >
-              {letter}
-            </span>
-          ))}
+          {currentWord.split('').map((letter, index) => {
+            // Format letter according to settings
+            const displayLetter = letterCase === 'upper' ? letter.toUpperCase() : letter.toLowerCase();
+            return (
+              <span
+                key={index}
+                className={index === targetLetterIndex ? "border-b-4 border-primary" : ""}
+              >
+                {displayLetter}
+              </span>
+            );
+          })}
         </motion.p>
       </div>
     </motion.div>

@@ -1,15 +1,19 @@
+
 import { useState } from "react";
 import StartScreen from "@/components/game/StartScreen";
 import GameScreen from "@/components/game/GameScreen";
 import Settings from "@/components/game/Settings";
-import type { GameSettings } from "@/components/game/Settings";
+import MissingLetterPuzzle from "@/components/game/MissingLetterPuzzle";
+import type { GameSettings, GameType } from "@/components/game/Settings";
 
 const Index = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [gameType, setGameType] = useState<GameType>('letterIdentifier');
   const [settings, setSettings] = useState<GameSettings>({
     sessionLength: 10,
-    letterPosition: 'start'
+    letterPosition: 'start',
+    letterCase: 'upper'
   });
 
   const handleGameEnd = () => {
@@ -17,22 +21,33 @@ const Index = () => {
     setShowSettings(false);
   };
 
-  const handleStartClick = () => {
+  const handleStartClick = (selectedGameType: string) => {
+    setGameType(selectedGameType as GameType);
     setShowSettings(true);
   };
 
-  const handleSettingsSubmit = (newSettings: GameSettings) => {
+  const handleSettingsSubmit = (newSettings: GameSettings, selectedGameType: GameType) => {
     setSettings(newSettings);
+    setGameType(selectedGameType);
     setShowSettings(false);
     setGameStarted(true);
   };
 
   if (showSettings) {
-    return <Settings onStart={handleSettingsSubmit} />;
+    return <Settings onStart={handleSettingsSubmit} gameType={gameType} />;
   }
 
   if (!gameStarted) {
     return <StartScreen onStart={handleStartClick} maxLetters={settings.sessionLength} />;
+  }
+
+  if (gameType === 'missingLetter') {
+    return (
+      <MissingLetterPuzzle 
+        onGameEnd={handleGameEnd}
+        letterCase={settings.letterCase}
+      />
+    );
   }
 
   return (
@@ -40,6 +55,7 @@ const Index = () => {
       maxLetters={settings.sessionLength} 
       onGameEnd={handleGameEnd}
       letterPosition={settings.letterPosition}
+      letterCase={settings.letterCase}
     />
   );
 };
